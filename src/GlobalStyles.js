@@ -4,38 +4,48 @@ export const GlobalStyles = createGlobalStyle`
   
   :root{
     --dark: #282a36;
-    --darkGray: #44475a;
     --light: #EDF2F4;
     --primary: #EF233C;
+    --darkGray: #44475a;
     --secondary: #D90429;
   }
 
   * {
     margin: 0;
     padding: 0;
-    outline: 0;
-    
+    outline: 0;    
     box-sizing: border-box;
 
   }
 
+  ::-webkit-scrollbar {
+    width: 4px;
+    background-color: var(--darkGray);
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color:var(--darkGray);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: var(--light);
+  }
+
   body {
-    font-family: sans-serif;
     color: var(--light);
+    font-family: sans-serif;
   }
 
   button {
     padding: 10px;
-
-    font-weight: bold;
-    color: var(--light);
-    background-color: var(--darkGray);
-    border: 1px solid var(--light);
-    border-radius: 4px;
-
     cursor: pointer;
-
+    font-weight: bold;
+    border-radius: 4px;
+    color: var(--light);
     transition: .2s ease-in-out;
+    border: 1px solid var(--light);
+    background-color: var(--darkGray);
 
     :hover{
       background-color: var(--primary);
@@ -46,16 +56,15 @@ export const GlobalStyles = createGlobalStyle`
     }
 
     :disabled{
+      color: var(--darkGray);
       background-color: transparent;
       border: 1px solid var(--darkGray);
-      color: var(--darkGray);
     }
   }
 
   a {
-    color: var(--light);
-
     transition: .2s;
+    color: var(--light);
 
     :hover{
       color: var(--primary);
@@ -64,6 +73,13 @@ export const GlobalStyles = createGlobalStyle`
     :active {
       transform: scale(0.95);
     }
+  }
+
+  textarea {
+    resize: none;
+    padding: 5px;
+    font-size: 16px;
+    font-weight: bold;
   }
 
 `;

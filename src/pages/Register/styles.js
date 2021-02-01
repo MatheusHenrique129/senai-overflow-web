@@ -5,35 +5,30 @@ import bgImg from "../../assets/bg.jpg";
 export const Container = styled.div`
   width: 100vw;
   height: 100vh;
-
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 
   ::before {
-    content: "";
-
-    position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-
-    background-image: url(${bgImg});
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center top;
-
-    filter: blur(4px);
-
     z-index: -1;
+    width: 100%;
+    content: "";
+    height: 100%;
+    filter: blur(4px);
+    position: absolute;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-image: url(${bgImg});
+    background-position: center top;
   }
 `;
 
 const loginAnimation = keyframes`
   0%{
-    top: -250px;
     opacity: 0;
+    top: -250px;
     transform: scale(0.01) rotate(90deg);
   }
   100%{
@@ -44,31 +39,26 @@ const loginAnimation = keyframes`
 `;
 
 export const FormLogin = styled.form`
-  animation: ${loginAnimation} 0.5s;
-
   width: 30%;
+  display: flex;
+  overflow: hidden;
   min-width: 300px;
   max-width: 500px;
-
-  background-color: #282a36cc;
   border-radius: 4px;
   text-align: center;
-
-  box-shadow: 0px 0px 10px black;
-
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  overflow: hidden;
+  flex-direction: column;
+  background-color: #282a36cc;
+  box-shadow: 0px 0px 10px black;
+  animation: ${loginAnimation} 0.5s;
 `;
 
 export const Header = styled.header`
   width: 100%;
   padding: 20px;
-  border-radius: 4px 4px 0px 0px;
-
   background-color: var(--dark);
   box-shadow: 0px 2px 4px black;
+  border-radius: 4px 4px 0px 0px;
 
   > h1 {
     font-size: 24px;
@@ -83,13 +73,12 @@ export const Header = styled.header`
 `;
 
 export const Body = styled.section`
+  gap: 10px;
   width: 100%;
   padding: 30px;
-  padding-top: 10px;
-
   display: flex;
+  padding-top: 10px;
   flex-direction: column;
-  gap: 10px;
 `;
 
 export const Button = styled.button`

@@ -6,8 +6,11 @@ import {
   FeedContainer,
   ActionsContainer,
   QuestionCard,
+  Logo,
+  IconSignOut,
 } from "./styles";
 
+import logo from "../../assets/logo.png";
 import imgProfile from "../../assets/foto_perfil.png";
 
 function Profile() {
@@ -36,7 +39,10 @@ function Profile() {
 function Home() {
   return (
     <Container>
-      <Header></Header>
+      <Header>
+        <Logo src={logo} />
+        <IconSignOut />
+      </Header>
       <Content>
         <ProfileContainer>
           <Profile />
@@ -46,14 +52,62 @@ function Home() {
             <header>
               <img src={imgProfile} />
               <strong>por Ciclano da Silva</strong>
-              <p>em 12/12/2012 as 12:12</p>
+              <p>em 12/12/2020 as 12:12</p>
             </header>
             <section>
               <strong>Titulo </strong>
               <p>Descrição</p>
               <img src="https://raddevon.com/wp-content/uploads/2018/10/react.jpg" />
             </section>
-            <footer></footer>
+            <footer>
+              <h1>03 Respostas</h1>
+              <section>
+                <header>
+                  <img src={imgProfile} />
+                  <strong>por Ciclano</strong>
+                  <p>12/12/2077 as 12:12</p>
+                </header>
+                <p>Resposta para a pergunta</p>
+              </section>
+              <form>
+                <textarea
+                  placeholder="Escreva uma resposta..."
+                  required
+                ></textarea>
+                <button>Comentar</button>
+              </form>
+            </footer>
+          </QuestionCard>
+
+          <QuestionCard>
+            <header>
+              <img src={imgProfile} />
+              <strong>por Ciclano da Silva</strong>
+              <p>em 12/12/2020 as 12:12</p>
+            </header>
+            <section>
+              <strong>Titulo </strong>
+              <p>Descrição</p>
+              <img src="https://raddevon.com/wp-content/uploads/2018/10/react.jpg" />
+            </section>
+            <footer>
+              <h1>03 Respostas</h1>
+              <section>
+                <header>
+                  <img src={imgProfile} />
+                  <strong>por Ciclano</strong>
+                  <p>12/12/2077 as 12:12</p>
+                </header>
+                <p>Resposta para a pergunta</p>
+              </section>
+              <form>
+                <textarea
+                  placeholder="Escreva uma resposta..."
+                  required
+                ></textarea>
+                <button>Comentar</button>
+              </form>
+            </footer>
           </QuestionCard>
         </FeedContainer>
         <ActionsContainer>
