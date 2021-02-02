@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { api } from "../../services/api";
-import { Link, useHistory } from "react-router-dom";
 import Input from "../../components/Input";
+import { Link, useHistory } from "react-router-dom";
 import { Container, FormLogin, Header, Body, Button } from "./styles";
 
 function Register() {
   const history = useHistory();
 
-  const [register, setRgister] = useState({
+  const [student, setStudent] = useState({
     ra: "",
     name: "",
     email: "",
@@ -15,22 +15,42 @@ function Register() {
     validPassword: "",
   });
 
+  const handleInput = (e) => {
+    setStudent({ ...student, [e.target.id]: e.target.value });
+  };
+
+  const validPassword = () => student.password === student.validPassword;
+
+  const buttonDisabled = () => {
+    const { ra, name, email, password } = student;
+
+    if (!ra || !name || !email || !password || !validPassword()) return true;
+
+    return false;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validPassword()) return alert("As senhas precisam ser iguais!");
+
     try {
-      const response = await api.post("/sessions", register);
+      const { ra, name, email, password } = student;
+
+      const response = await api.post("/students", {
+        ra,
+        name,
+        email,
+        password,
+      });
+
+      console.log(response);
 
       history.push("/home");
-
     } catch (error) {
       console.error(error);
       alert(error.response.data.error);
     }
-  };
-
-  const handleInput = (e) => {
-    setRgister({ ...register, [e.target.id]: e.target.value });
   };
 
   return (
@@ -41,28 +61,47 @@ function Register() {
           <h2>INFORME OS SEUS DADOS</h2>
         </Header>
         <Body>
-          <Input id="ra" label="RA" type="text" value={register.ra} />
-          <Input id="name" label="Nome" type="text" value={register.name} />
+          <Input
+            id="ra"
+            label="RA"
+            type="text"
+            value={student.ra}
+            handler={handleInput}
+          />
+          <Input
+            id="name"
+            label="Nome"
+            type="text"
+            value={student.name}
+            handler={handleInput}
+          />
           <Input
             id="email"
             label="E-mail"
             type="email"
-            value={register.email}
+            value={student.email}
+            handler={handleInput}
           />
           <Input
             id="password"
             label="Senha"
             type="password"
-            value={register.password}
+            value={student.password}
+            handler={handleInput}
           />
           <Input
             id="validPassword"
             label="Confirmar Senha"
             type="password"
-            value={register.validPassword}
+            onBlur={(e) => {
+              if (!validPassword()) alert("As senhas precisam ser iguais");
+              e.target.focus();
+            }}
+            value={student.validPassword}
+            handler={handleInput}
           />
-          <Button>Enviar</Button>
-          <Link to="/">Se já possui cadastro, clique para entrar</Link>
+          <Button disabled={buttonDisabled()}>Cadastrar</Button>
+          <Link to="/">Ou, se já tem cadastro, clique para entrar</Link>
         </Body>
       </FormLogin>
     </Container>
