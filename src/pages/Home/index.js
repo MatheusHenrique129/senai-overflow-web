@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import logo from "../../assets/logo.png";
 import { api } from "../../services/api";
 import imgProfile from "../../assets/foto_perfil.png";
-import { signOut } from "../../services/security";
+import { signOut, getUser } from "../../services/security";
 import { useHistory } from "react-router-dom";
 
 function Profile() {
@@ -40,31 +40,100 @@ function Profile() {
   );
 }
 
+function Answer({ answer }) {
+  console.log(answer);
+
+  return (
+    <section>
+      <header>
+        <img src={imgProfile} alt="Imagem de Perfil" />
+        <strong>por {answer.Student.name}</strong>
+        <p>{answer.created_at}</p>
+      </header>
+      <p>{answer.description}</p>
+    </section>
+  );
+}
+
 function Question({ question }) {
+  const [answers, setAnswers] = useState(question.Answers);
+
+  const [showAnswers, setShowAnswers] = useState(false);
+
+  const [newAnswer, setNewAnswer] = useState("");
+
+  const qtdAnswers = answers.length;
+
+  const handleAddAnswer = async (e) => {
+    e.preventDefault();
+
+    if (newAnswer.length < 8) {
+      return alert("A resposta deve ter no minimo 8 caracteres");
+    }
+
+    try {
+      const response = await api.post(`questions/${question.id}/answers`, {
+        description: newAnswer,
+      });
+
+      const student = getUser();
+
+      const answerAdded = {
+        id: response.data.id,
+        description: newAnswer,
+        created_at: response.data.createdAt,
+        Student: {
+          id: student.studentId,
+          name: student.name,
+        },
+      };
+
+      setAnswers([...answers, answerAdded]);
+
+      setNewAnswer("");
+    } catch (error) {
+      alert(error);
+    }
+  };
+
   return (
     <QuestionCard>
       <header>
         <img src={imgProfile} alt="Imagem de Perfil" />
-  <strong>por {question.Student.name}</strong>
+        <strong>por {question.Student.name}</strong>
         <p>em 12/12/2020 as 12:12</p>
       </header>
       <section>
         <strong>{question.title} </strong>
         <p>{question.description}</p>
-        <img src={question.image} />
+        <img src={question.image} alt="" />
       </section>
       <footer>
-        <h1>03 Respostas</h1>
-        <section>
-          <header>
-            <img src={imgProfile} />
-            <strong>por Ciclano</strong>
-            <p>12/12/2077 as 12:12</p>
-          </header>
-          <p>Resposta para a pergunta</p>
-        </section>
-        <form>
-          <textarea placeholder="Escreva uma resposta..." required></textarea>
+        <h1 onClick={() => setShowAnswers(!showAnswers)}>
+          {qtdAnswers === 0 ? (
+            " Seja o primeiro a responder"
+          ) : (
+            <>
+              {qtdAnswers}
+              {qtdAnswers > 1 ? " Respostas" : " Resposta"}
+            </>
+          )}
+        </h1>
+        {showAnswers && (
+          <>
+            {answers.map((a) => (
+              <Answer answer={a} />
+            ))}
+          </>
+        )}
+        <form onSubmit={handleAddAnswer}>
+          <textarea
+            placeholder="Escreva uma resposta..."
+            onChange={(e) => setNewAnswer(e.target.value)}
+            required
+          >
+            {newAnswer}
+          </textarea>
           <button>Comentar</button>
         </form>
       </footer>
@@ -117,6 +186,3 @@ function Home() {
 }
 
 export default Home;
-
-
-//commit -m "Implementação da segurança"
