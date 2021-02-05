@@ -1,3 +1,5 @@
+import { useHistory } from "react-router-dom";
+import { format } from "date-fns";
 import {
   Container,
   Header,
@@ -8,16 +10,23 @@ import {
   QuestionCard,
   Logo,
   IconSignOut,
+  FormNewQuestion,
 } from "./styles";
+
+import Input from "../../components/Input";
 
 import { useEffect, useState } from "react";
 import logo from "../../assets/logo.png";
 import { api } from "../../services/api";
 import imgProfile from "../../assets/foto_perfil.png";
 import { signOut, getUser } from "../../services/security";
-import { useHistory } from "react-router-dom";
+import Modal from "../../components/Modal";
+import Select from "../../components/Select";
+import Tag from "../../components/Chips";
 
 function Profile() {
+  const student = getUser();
+
   return (
     <>
       <section>
@@ -26,29 +35,34 @@ function Profile() {
       </section>
       <section>
         <strong>NOME:</strong>
-        <p>Fulano de tal</p>
+        <p>{student.name}</p>
       </section>
       <section>
         <strong>RA:</strong>
-        <p>1234567</p>
+        <p>{student.ra}</p>
       </section>
       <section>
         <strong>E-MAIL:</strong>
-        <p>fulano@gmail.com</p>
+        <p>{student.email}</p>
       </section>
     </>
   );
 }
 
 function Answer({ answer }) {
-  console.log(answer);
+  const student = getUser();
 
   return (
     <section>
       <header>
         <img src={imgProfile} alt="Imagem de Perfil" />
-        <strong>por {answer.Student.name}</strong>
-        <p>{answer.created_at}</p>
+        <strong>
+          por{" "}
+          {student.studentId === answer.Student.id
+            ? " Você"
+            : answer.Student.name}
+        </strong>
+        <p>{format(new Date(answer.created_at), "dd/MM/yyyy 'as' HH:mm")}</p>
       </header>
       <p>{answer.description}</p>
     </section>
@@ -63,6 +77,8 @@ function Question({ question }) {
   const [newAnswer, setNewAnswer] = useState("");
 
   const qtdAnswers = answers.length;
+
+  const student = getUser();
 
   const handleAddAnswer = async (e) => {
     e.preventDefault();
@@ -100,8 +116,15 @@ function Question({ question }) {
     <QuestionCard>
       <header>
         <img src={imgProfile} alt="Imagem de Perfil" />
-        <strong>por {question.Student.name}</strong>
-        <p>em 12/12/2020 as 12:12</p>
+        <strong>
+          por{" "}
+          {student.studentId === question.Student.id
+            ? " Você"
+            : question.Student.name}
+        </strong>
+        <p>
+          em {format(new Date(question.created_at), "dd/MM/yyyy 'as' HH:mm")}
+        </p>
       </header>
       <section>
         <strong>{question.title} </strong>
@@ -131,9 +154,8 @@ function Question({ question }) {
             placeholder="Escreva uma resposta..."
             onChange={(e) => setNewAnswer(e.target.value)}
             required
-          >
-            {newAnswer}
-          </textarea>
+            value={newAnswer}
+          ></textarea>
           <button>Comentar</button>
         </form>
       </footer>
@@ -141,10 +163,48 @@ function Question({ question }) {
   );
 }
 
+function NewQuestion() {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await api.get("/categories");
+
+        setCategories(response.data);
+      } catch (error) {
+        alert(error);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  return (
+    <FormNewQuestion>
+      <Input id="title" label="Titulo" />
+      <Input id="description" label="Descrição" />
+      <Input id="gist" label="Gist" />
+      <Select id="Categories" label="Categorias">
+        {categories.map((c) => (
+        <option value={c.id}>{c.description}</option>
+        ))};
+      </Select>
+      <div>
+        <Tag info="Backend" />
+        <Tag info="FrondEnd" />
+      </div>
+      <input type="file" />
+      <button>Enviar</button>
+    </FormNewQuestion>
+  );
+}
+
 function Home() {
   const history = useHistory();
 
   const [questions, setQuestions] = useState([]);
+
+  const [reload, setReload] = useState(null);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -154,7 +214,7 @@ function Home() {
     };
 
     loadQuestions();
-  }, []);
+  }, [reload]);
 
   const handleSignOut = () => {
     signOut();
@@ -162,26 +222,35 @@ function Home() {
     history.replace("/");
   };
 
+  const handleReload = () => {
+    setReload(Math.random());
+  };
+
   return (
-    <Container>
-      <Header>
-        <Logo src={logo} />
-        <IconSignOut onClick={handleSignOut} />
-      </Header>
-      <Content>
-        <ProfileContainer>
-          <Profile />
-        </ProfileContainer>
-        <FeedContainer>
-          {questions.map((q) => (
-            <Question question={q} />
-          ))}
-        </FeedContainer>
-        <ActionsContainer>
-          <button>Faça uma pergunta</button>
-        </ActionsContainer>
-      </Content>
-    </Container>
+    <>
+      <Modal title="Faça uma Pergunta">
+        <NewQuestion />
+      </Modal>
+      <Container>
+        <Header>
+          <Logo src={logo} onClick={handleReload} />
+          <IconSignOut onClick={handleSignOut} />
+        </Header>
+        <Content>
+          <ProfileContainer>
+            <Profile />
+          </ProfileContainer>
+          <FeedContainer>
+            {questions.map((q) => (
+              <Question question={q} />
+            ))}
+          </FeedContainer>
+          <ActionsContainer>
+            <button>Faça uma pergunta</button>
+          </ActionsContainer>
+        </Content>
+      </Container>
+    </>
   );
 }
 

@@ -180,3 +180,16 @@ export const QuestionCard = styled.article`
     }
   }
 `;
+
+export const FormNewQuestion = styled.form`
+  gap: 10px;
+  min-width: 300px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+  }
+`;

@@ -75,11 +75,12 @@ export const GlobalStyles = createGlobalStyle`
     }
   }
 
-  textarea {
+  textarea, select {
     resize: none;
     padding: 5px;
     font-size: 16px;
-    font-weight: bold;
+    border-radius: 4px;
+    font-family: sans-serif;
   }
 
 `;
