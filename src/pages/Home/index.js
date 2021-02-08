@@ -15,7 +15,7 @@ import {
 
 import Input from "../../components/Input";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import logo from "../../assets/logo.png";
 import { api } from "../../services/api";
 import imgProfile from "../../assets/foto_perfil.png";
@@ -70,7 +70,7 @@ function Answer({ answer }) {
 }
 
 function Question({ question }) {
-  const [answers, setAnswers] = useState(question.Answers);
+  const [answers, setAnswers] = useState([]);
 
   const [showAnswers, setShowAnswers] = useState(false);
 
@@ -79,6 +79,10 @@ function Question({ question }) {
   const qtdAnswers = answers.length;
 
   const student = getUser();
+
+  useEffect(() => {
+    setAnswers(question.Answers);
+  }, [question.Answers]);
 
   const handleAddAnswer = async (e) => {
     e.preventDefault();
@@ -163,8 +167,22 @@ function Question({ question }) {
   );
 }
 
-function NewQuestion() {
+function NewQuestion({ handleReload }) {
   const [categories, setCategories] = useState([]);
+
+  const [categoriesSel, setCategoriesSel] = useState([]);
+
+  const [image, setImage] = useState(null);
+
+  const [newQuestion, setNewQuestion] = useState({
+    title: "",
+    description: "",
+    gist: "",
+  });
+
+  const imageRef = useRef();
+
+  const categoriesRef = useRef();
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -179,21 +197,117 @@ function NewQuestion() {
     loadCategories();
   }, []);
 
+  const handleCategories = (e) => {
+    const idSel = e.target.value;
+
+    const categorySel = categories.find((c) => c.id == idSel);
+
+    if (categorySel && !categoriesSel.includes(categorySel))
+      setCategoriesSel([...categoriesSel, categorySel]);
+
+    e.target[e.target.selectedIndex].disabled = true;
+    e.target.value = "";
+  };
+
+  const handleImage = (e) => {
+    if (e.target.files[0]) {
+      imageRef.current.src = URL.createObjectURL(e.target.files[0]);
+      imageRef.current.style.display = "flex";
+    } else {
+      imageRef.current.src = "";
+      imageRef.current.style.display = "none";
+    }
+
+    setImage(e.target.files[0]);
+  };
+
+  const handleUnselCategory = (idUnsel) => {
+    setCategoriesSel(categoriesSel.filter((c) => c.id !== idUnsel));
+
+    const { options } = categoriesRef.current;
+
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].value === idUnsel.toString()) options[i].disabled = false;
+    }
+  };
+
+  const handleInput = (e) => {
+    setNewQuestion({ ...newQuestion, [e.target.id]: e.target.value });
+  };
+
+  const handleAddNewQuestion = async (e) => {
+    e.preventDefault();
+
+    const data = new FormData();
+
+    data.append("title", newQuestion.gist);
+    data.append("title", newQuestion.title);
+    data.append("description", newQuestion.description);
+
+    const categories = categoriesSel.reduce((s, c) => (s += c.id + ","), "");
+
+    data.append("categories", categories.substr(0, categories.length - 1));
+
+    if (image) data.append("image", image);
+    if (newQuestion.gist) data.append("gist", newQuestion.gist);
+
+    try {
+      await api.post("/questions", data, {
+        headers: {
+          "Content-type": "multipart/form-data",
+        },
+      });
+      handleReload();
+    } catch (error) {
+      alert(error);
+    }
+  };
+
   return (
-    <FormNewQuestion>
-      <Input id="title" label="Titulo" />
-      <Input id="description" label="Descrição" />
-      <Input id="gist" label="Gist" />
-      <Select id="Categories" label="Categorias">
+    <FormNewQuestion onSubmit={handleAddNewQuestion}>
+      <Input
+        id="title"
+        label="Titulo"
+        value={newQuestion.title}
+        handler={handleInput}
+        required
+      />
+      <Input
+        id="description"
+        label="Descrição"
+        value={newQuestion.description}
+        handler={handleInput}
+      />
+      <Input
+        id="gist"
+        label="Gist"
+        value={newQuestion.gist}
+        handler={handleInput}
+      />
+      <Select
+        id="Categories"
+        label="Categorias"
+        ref={categoriesRef}
+        handler={handleCategories}
+      >
+        <option value="">Selecione</option>
         {categories.map((c) => (
-        <option value={c.id}>{c.description}</option>
-        ))};
+          <option key={c.id} value={c.id}>
+            {c.description}
+          </option>
+        ))}
+        ;
       </Select>
       <div>
-        <Tag info="Backend" />
-        <Tag info="FrondEnd" />
+        {categoriesSel.map((c) => (
+          <Tag
+            info={c.description}
+            handleClose={() => handleUnselCategory(c.id)}
+          ></Tag>
+        ))}
       </div>
-      <input type="file" />
+      <input type="file" onChange={handleImage} />
+      <img alt="Pré-visualização" ref={imageRef} />
       <button>Enviar</button>
     </FormNewQuestion>
   );
@@ -205,6 +319,8 @@ function Home() {
   const [questions, setQuestions] = useState([]);
 
   const [reload, setReload] = useState(null);
+
+  const [showNewQuestion, setShowNewQuestion] = useState(false);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -223,14 +339,20 @@ function Home() {
   };
 
   const handleReload = () => {
+    setShowNewQuestion(false);
     setReload(Math.random());
   };
 
   return (
     <>
-      <Modal title="Faça uma Pergunta">
-        <NewQuestion />
-      </Modal>
+      {showNewQuestion && (
+        <Modal
+          title="Faça uma Pergunta"
+          handleClose={() => setShowNewQuestion(false)}
+        >
+          <NewQuestion handleReload={handleReload} />
+        </Modal>
+      )}
       <Container>
         <Header>
           <Logo src={logo} onClick={handleReload} />
@@ -246,7 +368,9 @@ function Home() {
             ))}
           </FeedContainer>
           <ActionsContainer>
-            <button>Faça uma pergunta</button>
+            <button onClick={() => setShowNewQuestion(true)}>
+              Faça uma pergunta
+            </button>
           </ActionsContainer>
         </Content>
       </Container>

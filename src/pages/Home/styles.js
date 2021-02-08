@@ -192,4 +192,10 @@ export const FormNewQuestion = styled.form`
     display: flex;
     flex-wrap: wrap;
   }
+
+  > img {
+    display: none;
+    max-width: 75%;
+    align-self: center;
+  }
 `;
