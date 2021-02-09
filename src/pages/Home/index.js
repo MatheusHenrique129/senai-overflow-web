@@ -23,6 +23,7 @@ import { signOut, getUser } from "../../services/security";
 import Modal from "../../components/Modal";
 import Select from "../../components/Select";
 import Tag from "../../components/Chips";
+import Loading from "../../components/Loading";
 
 function Profile() {
   const student = getUser();
@@ -69,7 +70,7 @@ function Answer({ answer }) {
   );
 }
 
-function Question({ question }) {
+function Question({ question, setShowLoading }) {
   const [answers, setAnswers] = useState([]);
 
   const [showAnswers, setShowAnswers] = useState(false);
@@ -91,6 +92,8 @@ function Question({ question }) {
       return alert("A resposta deve ter no minimo 8 caracteres");
     }
 
+    setShowLoading(true);
+
     try {
       const response = await api.post(`questions/${question.id}/answers`, {
         description: newAnswer,
@@ -111,8 +114,11 @@ function Question({ question }) {
       setAnswers([...answers, answerAdded]);
 
       setNewAnswer("");
+
+      setShowLoading(false);
     } catch (error) {
       alert(error);
+      setShowLoading(false);
     }
   };
 
@@ -167,7 +173,7 @@ function Question({ question }) {
   );
 }
 
-function NewQuestion({ handleReload }) {
+function NewQuestion({ handleReload, setShowLoading }) {
   const [categories, setCategories] = useState([]);
 
   const [categoriesSel, setCategoriesSel] = useState([]);
@@ -240,7 +246,7 @@ function NewQuestion({ handleReload }) {
 
     const data = new FormData();
 
-    data.append("title", newQuestion.gist);
+    if (newQuestion.gist) data.append("gist", newQuestion.gist);
     data.append("title", newQuestion.title);
     data.append("description", newQuestion.description);
 
@@ -251,6 +257,8 @@ function NewQuestion({ handleReload }) {
     if (image) data.append("image", image);
     if (newQuestion.gist) data.append("gist", newQuestion.gist);
 
+    setShowLoading(true);
+
     try {
       await api.post("/questions", data, {
         headers: {
@@ -260,6 +268,7 @@ function NewQuestion({ handleReload }) {
       handleReload();
     } catch (error) {
       alert(error);
+      setShowLoading(false);
     }
   };
 
@@ -320,15 +329,18 @@ function Home() {
 
   const [reload, setReload] = useState(null);
 
+  const [showLoading, setShowLoading] = useState(false);
+
   const [showNewQuestion, setShowNewQuestion] = useState(false);
 
   useEffect(() => {
     const loadQuestions = async () => {
+      setShowLoading(true);
       const response = await api.get("/feed");
 
+      setShowLoading(false);
       setQuestions(response.data);
     };
-
     loadQuestions();
   }, [reload]);
 
@@ -345,12 +357,16 @@ function Home() {
 
   return (
     <>
+      {showLoading && <Loading />}
       {showNewQuestion && (
         <Modal
           title="Faça uma Pergunta"
           handleClose={() => setShowNewQuestion(false)}
         >
-          <NewQuestion handleReload={handleReload} />
+          <NewQuestion
+            handleReload={handleReload}
+            setShowLoading={setShowLoading}
+          />
         </Modal>
       )}
       <Container>
@@ -364,7 +380,7 @@ function Home() {
           </ProfileContainer>
           <FeedContainer>
             {questions.map((q) => (
-              <Question question={q} />
+              <Question question={q} setShowLoading={setShowLoading} />
             ))}
           </FeedContainer>
           <ActionsContainer>
