@@ -70,8 +70,22 @@ export const ProfileContainer = styled.div`
     flex-direction: column;
   }
 
+  input[type="file"] {
+    display: none;
+  }
+
+  label {
+    cursor: pointer;
+    transition: 0.2s;
+    text-decoration: underline;
+    :hover {
+      color: var(--primary);
+    }
+  }
+
   img {
     width: 35%;
+    margin-bottom: 5px;
     border-radius: 50%;
   }
 `;
