@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { format } from "date-fns";
+import ReactEmbedGist from "react-embed-gist";
 import {
   Container,
   Header,
@@ -11,27 +13,31 @@ import {
   Logo,
   IconSignOut,
   FormNewQuestion,
+  GistIcon,
+  ContainerGist,
 } from "./styles";
 
 import Input from "../../components/Input";
-
-import { useEffect, useState, useRef } from "react";
+import imgProfile from "../../assets/foto_perfil.png";
 import logo from "../../assets/logo.png";
 import { api } from "../../services/api";
-import imgProfile from "../../assets/foto_perfil.png";
-import { signOut, getUser, setUser } from "../../services/security";
+import { getUser, setUser, signOut } from "../../services/security";
 import Modal from "../../components/Modal";
 import Select from "../../components/Select";
 import Tag from "../../components/Chips";
 import Loading from "../../components/Loading";
 import { validSquaredImage } from "../../utils";
+import {
+  FaGithub,
+  FaGithubAlt,
+  FaGithubSquare,
+  FaReacteurope,
+} from "react-icons/fa";
+import SpinnerLoading from "../../components/SpinnerLoading";
+import InputSearch from "../../components/InputSearch";
 
-function Profile({ setShowLoading, handleReload, setMessage }) {
+function Profile({ setIsLoading, handleReload, setMessage }) {
   const [student, setStudent] = useState(getUser());
-
-  // useEffect(() => {
-  //   setStudent(getUser());
-  // }, []);
 
   const handleImage = async (e) => {
     if (!e.target.files[0]) return;
@@ -43,7 +49,7 @@ function Profile({ setShowLoading, handleReload, setMessage }) {
 
       data.append("image", e.target.files[0]);
 
-      setShowLoading(true);
+      setIsLoading(true);
 
       const response = await api.post(`/students/${student.id}/images`, data);
 
@@ -55,7 +61,7 @@ function Profile({ setShowLoading, handleReload, setMessage }) {
       setUser({ ...student, image: response.data.image });
     } catch (error) {
       alert(error);
-      setShowLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -92,55 +98,52 @@ function Answer({ answer }) {
         <strong>
           por{" "}
           {student.studentId === answer.Student.id
-            ? " Você"
+            ? "Você"
             : answer.Student.name}
         </strong>
-        <p>{format(new Date(answer.created_at), "dd/MM/yyyy 'as' HH:mm")}</p>
+        <p> {format(new Date(answer.created_at), "dd/MM/yyyy 'às' HH:mm")}</p>
       </header>
       <p>{answer.description}</p>
     </section>
   );
 }
 
-function Question({ question, setShowLoading }) {
-  const [answers, setAnswers] = useState([]);
-
+function Question({ question, setIsLoading, setCurrentGist }) {
   const [showAnswers, setShowAnswers] = useState(false);
 
   const [newAnswer, setNewAnswer] = useState("");
 
-  const qtdAnswers = answers.length;
-
-  const student = getUser();
+  const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
     setAnswers(question.Answers);
   }, [question.Answers]);
 
+  const qtdAnswers = answers.length;
+
   const handleAddAnswer = async (e) => {
     e.preventDefault();
 
-    if (newAnswer.length < 8) {
-      return alert("A resposta deve ter no minimo 8 caracteres");
-    }
+    if (newAnswer.length < 10)
+      return alert("A resposta deve ter no mínimo 10 caracteres");
 
-    setShowLoading(true);
+    setIsLoading(true);
 
     try {
-      const response = await api.post(`questions/${question.id}/answers`, {
+      const response = await api.post(`/questions/${question.id}/answers`, {
         description: newAnswer,
       });
 
-      const student = getUser();
+      const aluno = getUser();
 
       const answerAdded = {
         id: response.data.id,
         description: newAnswer,
         created_at: response.data.createdAt,
         Student: {
-          id: student.studentId,
-          name: student.name,
-          image: student.image,
+          id: aluno.studentId,
+          name: aluno.name,
+          image: aluno.image,
         },
       };
 
@@ -148,39 +151,44 @@ function Question({ question, setShowLoading }) {
 
       setNewAnswer("");
 
-      setShowLoading(false);
+      setIsLoading(false);
     } catch (error) {
       alert(error);
-      setShowLoading(false);
+      setIsLoading(false);
     }
   };
+
+  const student = getUser();
 
   return (
     <QuestionCard>
       <header>
         <img
           src={question.Student.image || imgProfile}
-          alt="Imagem de Perfil"
+          alt="Imagem de perfil"
         />
         <strong>
           por{" "}
           {student.studentId === question.Student.id
-            ? " Você"
+            ? "Você"
             : question.Student.name}
         </strong>
         <p>
-          em {format(new Date(question.created_at), "dd/MM/yyyy 'as' HH:mm")}
+          em {format(new Date(question.created_at), "dd/MM/yyyy 'às' HH:mm")}
         </p>
+        {question.gist && (
+          <GistIcon onClick={() => setCurrentGist(question.gist)} />
+        )}
       </header>
       <section>
-        <strong>{question.title} </strong>
+        <strong>{question.title}</strong>
         <p>{question.description}</p>
-        <img src={question.image} alt="" />
+        {question.image && <img src={question.image} alt="Imagem da questão" />}
       </section>
       <footer>
         <h1 onClick={() => setShowAnswers(!showAnswers)}>
           {qtdAnswers === 0 ? (
-            " Seja o primeiro a responder"
+            "Seja o primeiro a responder"
           ) : (
             <>
               {qtdAnswers}
@@ -190,18 +198,19 @@ function Question({ question, setShowLoading }) {
         </h1>
         {showAnswers && (
           <>
-            {answers.map((a) => (
-              <Answer answer={a} />
+            {answers.map((answer) => (
+              <Answer key={answer.id} answer={answer} />
             ))}
           </>
         )}
         <form onSubmit={handleAddAnswer}>
           <textarea
-            placeholder="Escreva uma resposta..."
+            minLength={10}
+            placeholder="Responda essa dúvida!"
             onChange={(e) => setNewAnswer(e.target.value)}
             required
             value={newAnswer}
-          ></textarea>
+          />
           <button>Comentar</button>
         </form>
       </footer>
@@ -209,18 +218,18 @@ function Question({ question, setShowLoading }) {
   );
 }
 
-function NewQuestion({ handleReload, setShowLoading }) {
-  const [categories, setCategories] = useState([]);
-
-  const [categoriesSel, setCategoriesSel] = useState([]);
-
-  const [image, setImage] = useState(null);
-
+function NewQuestion({ handleReload, setIsLoading }) {
   const [newQuestion, setNewQuestion] = useState({
     title: "",
     description: "",
     gist: "",
   });
+
+  const [categories, setCategories] = useState([]);
+
+  const [categoriesSel, setCategoriesSel] = useState([]);
+
+  const [image, setImage] = useState(null);
 
   const imageRef = useRef();
 
@@ -236,13 +245,14 @@ function NewQuestion({ handleReload, setShowLoading }) {
         alert(error);
       }
     };
+
     loadCategories();
   }, []);
 
   const handleCategories = (e) => {
     const idSel = e.target.value;
 
-    const categorySel = categories.find((c) => c.id == idSel);
+    const categorySel = categories.find((c) => c.id.toString() === idSel);
 
     if (categorySel && !categoriesSel.includes(categorySel))
       setCategoriesSel([...categoriesSel, categorySel]);
@@ -280,9 +290,10 @@ function NewQuestion({ handleReload, setShowLoading }) {
   const handleAddNewQuestion = async (e) => {
     e.preventDefault();
 
+    if (categoriesSel.length === 0) return alert("Selecione uma categoria");
+
     const data = new FormData();
 
-    if (newQuestion.gist) data.append("gist", newQuestion.gist);
     data.append("title", newQuestion.title);
     data.append("description", newQuestion.description);
 
@@ -293,7 +304,7 @@ function NewQuestion({ handleReload, setShowLoading }) {
     if (image) data.append("image", image);
     if (newQuestion.gist) data.append("gist", newQuestion.gist);
 
-    setShowLoading(true);
+    setIsLoading(true);
 
     try {
       await api.post("/questions", data, {
@@ -301,10 +312,11 @@ function NewQuestion({ handleReload, setShowLoading }) {
           "Content-type": "multipart/form-data",
         },
       });
+
       handleReload();
     } catch (error) {
       alert(error);
-      setShowLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -312,9 +324,10 @@ function NewQuestion({ handleReload, setShowLoading }) {
     <FormNewQuestion onSubmit={handleAddNewQuestion}>
       <Input
         id="title"
-        label="Titulo"
+        label="Título"
         value={newQuestion.title}
         handler={handleInput}
+        minLength="5"
         required
       />
       <Input
@@ -322,18 +335,21 @@ function NewQuestion({ handleReload, setShowLoading }) {
         label="Descrição"
         value={newQuestion.description}
         handler={handleInput}
+        minLength="10"
+        required
       />
       <Input
         id="gist"
         label="Gist"
         value={newQuestion.gist}
+        minLength="20"
         handler={handleInput}
       />
       <Select
-        id="Categories"
+        id="categories"
         label="Categorias"
-        ref={categoriesRef}
         handler={handleCategories}
+        ref={categoriesRef}
       >
         <option value="">Selecione</option>
         {categories.map((c) => (
@@ -341,11 +357,11 @@ function NewQuestion({ handleReload, setShowLoading }) {
             {c.description}
           </option>
         ))}
-        ;
       </Select>
       <div>
         {categoriesSel.map((c) => (
           <Tag
+            key={c.id}
             info={c.description}
             handleClose={() => handleUnselCategory(c.id)}
           ></Tag>
@@ -358,6 +374,22 @@ function NewQuestion({ handleReload, setShowLoading }) {
   );
 }
 
+function Gist({ gist, handleClose }) {
+  if (gist) {
+    const formatedGist = gist.split(".com/").pop();
+    return (
+      <Modal
+        title="Exemplo de código"
+        handleClose={() => handleClose(undefined)}
+      >
+        <ContainerGist>
+          <ReactEmbedGist gist={formatedGist} />
+        </ContainerGist>
+      </Modal>
+    );
+  } else return null;
+}
+
 function Home() {
   const history = useHistory();
 
@@ -365,18 +397,47 @@ function Home() {
 
   const [reload, setReload] = useState(null);
 
-  const [showLoading, setShowLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [isLoadingFeed, setIsLoadingFeed] = useState(false);
 
   const [showNewQuestion, setShowNewQuestion] = useState(false);
 
-  useEffect(() => {
-    const loadQuestions = async () => {
-      setShowLoading(true);
-      const response = await api.get("/feed");
+  const [currentGist, setCurrentGist] = useState(undefined);
 
-      setShowLoading(false);
-      setQuestions(response.data);
-    };
+  const [page, setPage] = useState(1);
+
+  const [totalQuestions, setTotalQuestions] = useState(0);
+
+  const [search, setSearch] = useState("");
+
+  const feedRef = useRef();
+
+  const loadQuestions = async (reload) => {
+    //se já tiver buscando, não busca de novo
+    if (isLoadingFeed) return;
+
+    //se tiver chego no fim, não busca de novo
+    if (totalQuestions > 0 && totalQuestions == questions.length) return;
+
+    setIsLoadingFeed(true);
+
+    const response = await api.get("/feed", {
+      params: { page },
+    });
+
+    setPage(page + 1);
+
+    setQuestions([...questions, ...response.data]);
+
+    setTotalQuestions(response.headers["x-total-count"]);
+
+    console.log(totalQuestions);
+
+    setIsLoadingFeed(false);
+  };
+
+  useEffect(() => {
     loadQuestions();
   }, [reload]);
 
@@ -388,43 +449,86 @@ function Home() {
 
   const handleReload = () => {
     setShowNewQuestion(false);
+    setIsLoading(false);
+    setPage(1);
+    setQuestions([]);
+    setSearch("");
     setReload(Math.random());
+  };
+
+  const feedScrollObserver = (e) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.target;
+
+    if (scrollTop + clientHeight > scrollHeight - 100 && search.length < 4)
+      loadQuestions();
+  };
+
+  const handleSearch = async (e) => {
+    setSearch(e.target.value);
+
+    if (e.target.value.length === 0) handleReload();
+
+    if (e.target.value.length < 4) return;
+
+    try {
+      const response = await api.get("/questions", {
+        params: { search: e.target.value },
+      });
+
+      setQuestions(response.data);
+    } catch (error) {
+      alert(error);
+      console.log(error);
+    }
   };
 
   return (
     <>
-      {showLoading && <Loading />}
+      {isLoading && <Loading />}
+
+      <Gist gist={currentGist} handleClose={setCurrentGist} />
+
       {showNewQuestion && (
         <Modal
-          title="Faça uma Pergunta"
+          title="Faça uma pergunta"
           handleClose={() => setShowNewQuestion(false)}
         >
           <NewQuestion
             handleReload={handleReload}
-            setShowLoading={setShowLoading}
+            setIsLoading={setIsLoading}
           />
         </Modal>
       )}
       <Container>
         <Header>
           <Logo src={logo} onClick={handleReload} />
+          <InputSearch handler={handleSearch} value={search} />
           <IconSignOut onClick={handleSignOut} />
         </Header>
         <Content>
           <ProfileContainer>
-            <Profile
-              handleReload={handleReload}
-              setShowLoading={setShowLoading}
-            />
+            <Profile handleReload={handleReload} setIsLoading={setIsLoading} />
           </ProfileContainer>
-          <FeedContainer>
+          <FeedContainer ref={feedRef} onScroll={feedScrollObserver}>
+            {questions.length === 0 &&
+              search.length > 3 &&
+              "Nenhuma questão encontrada"}
             {questions.map((q) => (
-              <Question question={q} setShowLoading={setShowLoading} />
+              <Question
+                key={q.id}
+                question={q}
+                setIsLoading={setIsLoading}
+                setCurrentGist={setCurrentGist}
+              />
             ))}
+            {isLoadingFeed && <SpinnerLoading />}
+            {totalQuestions > 0 &&
+              totalQuestions == questions.length &&
+              "that's all, folks"}
           </FeedContainer>
           <ActionsContainer>
             <button onClick={() => setShowNewQuestion(true)}>
-              Faça uma pergunta
+              Fazer uma pergunta
             </button>
           </ActionsContainer>
         </Content>

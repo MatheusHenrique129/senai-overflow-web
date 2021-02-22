@@ -1,73 +1,52 @@
-import styled from "styled-components";
+import { FaGithub } from "react-icons/fa";
 import { GoSignOut } from "react-icons/go";
+import styled, { keyframes } from "styled-components";
 
 export const Container = styled.div`
   width: 100vw;
   height: 100vh;
+
+  background-color: var(--dark);
+
   display: flex;
   justify-content: center;
-  background-color: var(--dark);
 `;
 
 export const Header = styled.header`
+  position: fixed;
   width: 100%;
   height: 60px;
+
   display: flex;
-  position: fixed;
   align-items: center;
   justify-content: space-between;
+
   background-color: var(--primary);
-  box-shadow: 0px 1px 5px var(--darkGray);
   border-bottom: 1px solid var(--darkGray);
-`;
 
-export const Logo = styled.img`
-  width: 60px;
-  height: 60px;
-  margin: 20px;
-  cursor: pointer;
-  transition: 0.2s;
-  margin-top: 40px;
-  border-radius: 50%;
-  border: 2px solid var(--dark);
-  box-shadow: 0px 0px 5px var(--dark);
-
-  :hover {
-    transform: scale(1.1);
-    box-shadow: 0px 0px 15px var(--dark);
-  }
-`;
-
-export const IconSignOut = styled(GoSignOut)`
-  font-size: 30px;
-  cursor: pointer;
-  transition: 0.2s;
-  margin-right: 10px;
-
-  :hover {
-    color: var(--dark);
-  }
+  box-shadow: 0px 1px 5px var(--darkGray);
 `;
 
 export const Content = styled.div`
   width: 1280px;
-  display: grid;
   padding-top: 60px;
+
+  display: grid;
   grid-template-columns: 20% 60% 20%;
 `;
 
 export const ProfileContainer = styled.div`
-  gap: 20px;
   display: flex;
-  margin-top: 10px;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin-top: 10px;
 
   section {
-    gap: 4px;
     display: flex;
-    align-items: center;
     flex-direction: column;
+    align-items: center;
+    gap: 4px;
   }
 
   input[type="file"] {
@@ -76,8 +55,9 @@ export const ProfileContainer = styled.div`
 
   label {
     cursor: pointer;
-    transition: 0.2s;
     text-decoration: underline;
+
+    transition: 0.2s;
     :hover {
       color: var(--primary);
     }
@@ -85,35 +65,38 @@ export const ProfileContainer = styled.div`
 
   img {
     width: 35%;
-    margin-bottom: 5px;
     border-radius: 50%;
   }
 `;
 
 export const FeedContainer = styled.div`
-  gap: 10px;
   display: flex;
-  overflow-y: auto;
-  padding: 10px 0px;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
+
+  gap: 10px;
+  overflow-y: auto;
+
+  padding: 10px 0px;
 `;
 
 export const ActionsContainer = styled.div`
   margin-top: 10px;
+
   text-align: center;
 `;
 
 export const QuestionCard = styled.article`
   width: 80%;
   padding: 10px;
-  border-radius: 4px;
+
   background-color: var(--darkGray);
+  border-radius: 4px;
 
   > header {
-    gap: 10px;
     display: flex;
     align-items: center;
+    gap: 10px;
 
     > img {
       width: 30px;
@@ -123,10 +106,11 @@ export const QuestionCard = styled.article`
   }
 
   > section {
-    gap: 10px;
-    display: flex;
     margin-top: 10px;
+
+    display: flex;
     flex-direction: column;
+    gap: 10px;
 
     > strong {
       font-size: 18px;
@@ -135,6 +119,7 @@ export const QuestionCard = styled.article`
     > p {
       font-size: 15px;
       padding: 10px 5px;
+
       border-left: 2px solid var(--primary);
     }
 
@@ -143,29 +128,34 @@ export const QuestionCard = styled.article`
       align-self: center;
     }
   }
+
   > footer {
     margin-top: 10px;
 
     > h1 {
       font-size: 18px;
-      cursor: pointer;
-      transition: 0.2s;
       font-weight: bold;
+
+      cursor: pointer;
+
+      transition: 0.2s;
 
       :hover {
         color: var(--primary);
       }
     }
+
     > section {
-      padding: 5px;
       margin-top: 10px;
       border-radius: 4px;
+      padding: 5px;
+
       background-color: var(--dark);
 
       > header {
-        gap: 10px;
         display: flex;
         align-items: center;
+        gap: 10px;
 
         > img {
           width: 30px;
@@ -175,18 +165,20 @@ export const QuestionCard = styled.article`
       }
 
       > p {
-        width: 100%;
         margin-top: 5px;
+        width: 100%;
         padding: 10px 5px;
+
         border-left: 2px solid var(--primary);
       }
     }
 
     > form {
-      gap: 5px;
       width: 100%;
-      display: flex;
       margin-top: 5px;
+
+      display: flex;
+      gap: 5px;
 
       > textarea {
         flex: 1;
@@ -195,12 +187,45 @@ export const QuestionCard = styled.article`
   }
 `;
 
+export const Logo = styled.img`
+  width: 60px;
+  height: 60px;
+
+  margin: 20px;
+  margin-top: 40px;
+  border-radius: 30px;
+  border: 2px solid var(--dark);
+
+  box-shadow: 0px 0px 5px var(--dark);
+
+  cursor: pointer;
+  transition: 0.2s;
+
+  :hover {
+    transform: scale(1.1);
+    box-shadow: 0px 0px 15px var(--dark);
+  }
+`;
+
+export const IconSignOut = styled(GoSignOut)`
+  font-size: 30px;
+  margin-right: 10px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+
+  :hover {
+    color: var(--dark);
+  }
+`;
+
 export const FormNewQuestion = styled.form`
-  gap: 10px;
   min-width: 300px;
-  width: 350px;
+  width: 450px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 
   > div {
     display: flex;
@@ -208,8 +233,49 @@ export const FormNewQuestion = styled.form`
   }
 
   > img {
-    display: none;
-    max-width: 75%;
     align-self: center;
+    max-width: 40%;
+    display: none;
+  }
+`;
+
+export const GistIcon = styled(FaGithub)`
+  font-size: 30px;
+  margin-right: 10px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+
+  :hover {
+    color: var(--primary);
+  }
+
+  :active {
+    transform: scale(0.9);
+  }
+`;
+
+const slide = keyframes`
+  0%{
+    transform: scale(0.1);
+  }
+
+  100%{
+    transform: scale(1);
+  }
+`;
+
+export const ContainerGist = styled.section`
+  margin-top: 10px;
+
+  animation: ${slide} 0.8s;
+
+  h2 {
+    font-size: 16px;
+    font-weight: normal;
+
+    text-align: center;
+    margin-bottom: 5px;
   }
 `;
